@@ -2,8 +2,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Store {
 
@@ -18,21 +17,20 @@ public class Store {
     }
 
     public XMPParams get(File imageFile) {
-        return store.get(getNearMetric(getImage(imageFile)));
+        List<NearMetric> nearMetrics = getNearMetrics(getImage(imageFile));
+        double distSum = nearMetrics.stream().mapToDouble(NearMetric::getDistance).sum();
+        return store.get(getNearMetrics(getImage(imageFile)));
     }
 
-    private Metric getNearMetric(BufferedImage bufferedImage) {
+    private List<NearMetric> getNearMetrics(BufferedImage bufferedImage) {
         Metric currentMetric = new Metric(bufferedImage);
-        int minDist = Integer.MAX_VALUE;
-        Metric result = null;
+        List<NearMetric> nearMetrics = new ArrayList<>();
         for (Metric metric: store.keySet()) {
-            int dist = Metric.getDist(currentMetric, metric);
-            if (dist < minDist) {
-                minDist = dist;
-                result = metric;
-            }
+            double dist = Metric.getDist(currentMetric, metric);
+            nearMetrics.add(new NearMetric(metric, dist));
         }
-        return result;
+        nearMetrics.sort(Comparator.comparing(NearMetric::getDistance));
+        return nearMetrics.subList(0, 1);
     }
 
     private BufferedImage getImage(File file) {

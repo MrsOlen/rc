@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class XMPParams {
 
     private int temperature;
