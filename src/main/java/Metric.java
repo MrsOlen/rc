@@ -1,5 +1,10 @@
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Vector;
 
 public class Metric {
 
@@ -7,7 +12,8 @@ public class Metric {
 
     private RGBVector[][] rgbMatrix;
 
-    public Metric(BufferedImage image) {
+    public Metric(File imageFile) {
+        BufferedImage image = getImage(imageFile);
         rgbMatrix = new RGBVector[RGB_MATRIX_SIZE][RGB_MATRIX_SIZE];
         int width = image.getWidth() / RGB_MATRIX_SIZE;
         int height = image.getHeight() / RGB_MATRIX_SIZE;
@@ -29,23 +35,25 @@ public class Metric {
         }
     }
 
-    public static int getDist(Metric metric1, Metric metric2) {
-        int sum = 0;
+    public List<Double> getNormalizedVector() {
+        List<Double> vector = new Vector<>();
         for (int i = 0; i < RGB_MATRIX_SIZE; i++) {
             for (int j = 0; j < RGB_MATRIX_SIZE; j++) {
-                sum+= Math.pow(metric1.getRgbMatrix()[i][j].getRed() - metric2.getRgbMatrix()[i][j].getRed(), 2) +
-                        Math.pow(metric1.getRgbMatrix()[i][j].getGreen() - metric2.getRgbMatrix()[i][j].getGreen(), 2) +
-                        Math.pow(metric1.getRgbMatrix()[i][j].getBlue() - metric2.getRgbMatrix()[i][j].getBlue(), 2);
+                vector.add(rgbMatrix[i][j].getRed());
+                vector.add(rgbMatrix[i][j].getGreen());
+                vector.add(rgbMatrix[i][j].getBlue());
+                vector.add(rgbMatrix[i][j].getLightness());
             }
         }
-        return (int) Math.sqrt(sum);
+        return vector;
     }
 
-    public RGBVector[][] getRgbMatrix() {
-        return rgbMatrix;
-    }
-
-    public void setRgbMatrix(RGBVector[][] rgbMatrix) {
-        this.rgbMatrix = rgbMatrix;
+    private BufferedImage getImage(File file) {
+        try {
+            return ImageIO.read(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Не удалось получить картинку из файла " + file.getAbsolutePath());
+        }
     }
 }
