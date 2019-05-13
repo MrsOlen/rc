@@ -5,8 +5,18 @@ import java.util.List;
 public class App {
 
     public static void main(String[] args) {
-        String sourceDirectory = "C:\\Users\\Алена\\Desktop\\diploma\\test2\\source";
-        String imageDirectory = "C:\\Users\\Алена\\Desktop\\diploma\\test2\\images";
+        if (args.length == 0) {
+            System.out.println("Не задан каталог с изображениями");
+            return;
+        }
+
+        String imageDirectory = args[0];
+
+        String sourceDirectory = "";
+        if (args.length > 1) {
+            sourceDirectory = args[1];
+        }
+
         Store store = getStore(sourceDirectory);
         if (store.isEmpty()) {
             System.out.println("Хранилище с образцами обработки пусто");
@@ -39,7 +49,6 @@ public class App {
 
         File sourceDirectory = new File(sourceDirectoryName);
         if (!sourceDirectory.exists() || !sourceDirectory.isDirectory()) {
-            System.out.println(sourceDirectory.getAbsolutePath() + " не является директорией");
             return store;
         }
         List<String> imageFileNames = new ArrayList<>();
