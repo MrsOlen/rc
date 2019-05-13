@@ -1,42 +1,77 @@
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.metadata.IIOMetadata;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class App {
 
-    private static Store store;
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         String sourceDirectory = "C:\\Users\\Алена\\Desktop\\diploma\\test2\\source";
         String imageDirectory = "C:\\Users\\Алена\\Desktop\\diploma\\test2\\images";
-        fillStore(sourceDirectory);
-        processImages(imageDirectory);
+        Store store = getStore(sourceDirectory);
+        if (store.isEmpty()) {
+            System.out.println("Хранилище с образцами обработки пусто");
+            return;
+        }
+        processImages(imageDirectory, store);
+        saveStore(store);
+
     }
 
-    private static void fillStore(String sourceDirectoryName) {
+    private static Store getStore(String sourceDirectoryName) {
+        Store store;
+        String userDirectory = System.getProperty("user.home");
+        File directory = new File(userDirectory + "\\RawConverter");
+        if (!directory.exists()) {
+            store = new Store();
+        }
+        File file = new File(userDirectory + "\\RawConverter\\store.txt");
+        if (!file.exists()) {
+            store = new Store();
+        }
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            store = (Store) ois.readObject();
+        } catch (Exception e) {
+            System.out.println("Произошла ошибка при загрузке хранилища");
+            store = new Store();
+        }
+
         File sourceDirectory = new File(sourceDirectoryName);
         if (!sourceDirectory.exists() || !sourceDirectory.isDirectory()) {
-            throw new RuntimeException(sourceDirectory.getAbsolutePath() + " не является директорией");
+            System.out.println(sourceDirectory.getAbsolutePath() + " не является директорией");
+            return store;
         }
         List<String> imageFileNames = new ArrayList<>();
-        for (File file : sourceDirectory.listFiles(file -> {
-            String fileName = file.getName().toUpperCase();
+        for (File sourceFile : sourceDirectory.listFiles(sourceFile -> {
+            String fileName = sourceFile.getName().toUpperCase();
             return fileName.contains("NEF") || fileName.contains("ARW");
         })) {
-            imageFileNames.add(file.getAbsolutePath());
+            imageFileNames.add(sourceFile.getAbsolutePath());
         }
-        store = new Store();
         for (String imageFileName : imageFileNames) {
             store.add(new File(imageFileName), new File(getXmpFileName(imageFileName)));
         }
+        return store;
     }
 
-    private static void processImages(String imageDirectoryFileName) {
+    public static void saveStore(Store store) {
+        String userDirectory = System.getProperty("user.home");
+        File directory = new File(userDirectory + "\\RawConverter");
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+        try {
+            FileOutputStream fot = new FileOutputStream(new File(userDirectory + "\\RawConverter\\store.txt"));
+            ObjectOutputStream oos = new ObjectOutputStream(fot);
+            oos.writeObject(store);
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void processImages(String imageDirectoryFileName, Store store) {
         File imageDirectory = new File(imageDirectoryFileName);
         if (!imageDirectory.exists() || !imageDirectory.isDirectory()) {
             throw new RuntimeException(imageDirectory.getAbsolutePath() + " не является директорией");
@@ -47,16 +82,27 @@ public class App {
         })) {
             XMPParams xmpParams = store.get(imageFile);
             String xmpFileName = getXmpFileName(imageFile.getAbsolutePath());
-            if (!new File(xmpFileName).renameTo(new File(getXmpSourceFileName(xmpFileName)))) {
-                throw new RuntimeException("Не удалось переименовать файл " + xmpFileName);
-            }
-            try {
-                FileWriter fileWriter = new FileWriter(xmpFileName);
-                fileWriter.write(XMPParser.getReplacedFileContent(new File(getXmpSourceFileName(xmpFileName)), xmpParams));
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Ошибка записи файла " + imageFile.getAbsolutePath());
+            File xmpFile = new File(xmpFileName);
+            if (xmpFile.exists()) {
+                if (!xmpFile.renameTo(new File(getXmpSourceFileName(xmpFileName)))) {
+                    throw new RuntimeException("Не удалось переименовать файл " + xmpFileName);
+                }
+                try {
+                    FileWriter fileWriter = new FileWriter(xmpFileName);
+                    fileWriter.write(XMPParser.getReplacedFileContent(new File(getXmpSourceFileName(xmpFileName)), xmpParams));
+                    fileWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Ошибка записи файла " + imageFile.getAbsolutePath());
+                }
+            } else {
+                try {
+                    FileWriter newFileWriter = new FileWriter(xmpFileName);
+                    newFileWriter.write(XMPParser.getFileContent(xmpParams, imageFile.getName()));
+                    newFileWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

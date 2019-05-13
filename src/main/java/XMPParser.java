@@ -10,6 +10,19 @@ import java.util.Map;
 
 public class XMPParser {
 
+    private static final String XMP_FILE_CONTENT =
+            "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\" x:xmptk=\"Adobe XMP Core 5.6-c140 79.160451, 2017/05/06-01:08:21        \">\n" +
+                    " <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n" +
+                    "  <rdf:Description rdf:about=\"\"\n" +
+                    "    xmlns:crs=\"http://ns.adobe.com/camera-raw-settings/1.0/\"\n" +
+                    "%s\n" +
+                    "   crs:RawFileName=\"%s\">\n" +
+                    "  </rdf:Description>\n" +
+                    " </rdf:RDF>\n" +
+                    "</x:xmpmeta>";
+
+    private static final String XMP_PARAM_STR = "   %s=\"%s\"";
+
     private static final String CRS_TEMPERATURE = "crs:Temperature";
     private static final String CRS_TINT = "crs:Tint";
     private static final String CRS_EXPOSURE = "crs:Exposure2012";
@@ -27,7 +40,7 @@ public class XMPParser {
     private static final Map<String, Class> methodParametersMap;
 
     static {
-        propertyToMethodMap = new HashMap<String, String>();
+        propertyToMethodMap = new HashMap<>();
         propertyToMethodMap.put(CRS_TEMPERATURE, "Temperature");
         propertyToMethodMap.put(CRS_TINT, "Tint");
         propertyToMethodMap.put(CRS_EXPOSURE, "Exposure");
@@ -41,7 +54,7 @@ public class XMPParser {
         propertyToMethodMap.put(CRS_VIBRANCE, "Vibrance");
         propertyToMethodMap.put(CRS_SATURATION, "Saturation");
 
-        methodParametersMap = new HashMap<String, Class>();
+        methodParametersMap = new HashMap<>();
         methodParametersMap.put("Temperature", int.class);
         methodParametersMap.put("Tint", int.class);
         methodParametersMap.put("Exposure", double.class);
@@ -81,7 +94,7 @@ public class XMPParser {
             String line = reader.readLine();
             String nextLine = reader.readLine();
             while (!line.contains("crs:") || nextLine.contains("crs:")) {
-                fileContent.append(getReplacedLine(line, xmpParams, replacedProperties)).append("\"\n");
+                fileContent.append(getReplacedLine(line, xmpParams, replacedProperties)).append("\n");
                 line = nextLine;
                 nextLine = reader.readLine();
             }
@@ -90,7 +103,8 @@ public class XMPParser {
                     try {
                         String methodName = "get" + propertyToMethodMap.get(property);
                         Method method = xmpParams.getClass().getMethod(methodName);
-                        String propertyValue = method.invoke(xmpParams, null).toString();
+                        String propertyValue;
+                        propertyValue = method.invoke(xmpParams, null).toString();
                         fileContent.append(String.format("   %s=\"%s\"\n", property, propertyValue));
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
@@ -109,6 +123,22 @@ public class XMPParser {
         }
     }
 
+    public static String getFileContent(XMPParams xmpParams, String fileName) {
+        List<String> xmpParamStrs = new ArrayList<>();
+        for (String property : propertyToMethodMap.keySet()) {
+            try {
+                String methodName = "get" + propertyToMethodMap.get(property);
+                Method method = xmpParams.getClass().getMethod(methodName);
+                String propertyValue;
+                propertyValue = method.invoke(xmpParams, null).toString();
+                xmpParamStrs.add(String.format(XMP_PARAM_STR, property, propertyValue));
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        return String.format(XMP_FILE_CONTENT, String.join("\n", xmpParamStrs), fileName);
+    }
+
     private static String getReplacedLine(String line, XMPParams xmpParams, List<String> replacedProperties) {
         for (String property : propertyToMethodMap.keySet()) {
             if (line.lastIndexOf(property) != -1) {
@@ -117,8 +147,8 @@ public class XMPParser {
                     String methodName = "get" + propertyToMethodMap.get(property);
                     Method method = xmpParams.getClass().getMethod(methodName);
                     String[] lineParts = line.split("\"");
-                    lineParts[lineParts.length - 1] = method.invoke(xmpParams, null).toString();
-                    return String.join("\"", lineParts);
+                    lineParts[1] = method.invoke(xmpParams, null).toString();
+                    return String.format("%s\"%s\"%s", lineParts[0], lineParts[1], lineParts.length == 3 ? lineParts[2] : "");
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -129,7 +159,7 @@ public class XMPParser {
 
     private static void addXMPParams(XMPParams xmpParams, String line) {
         for (String property : propertyToMethodMap.keySet()) {
-            if (line.lastIndexOf(property) != -1) {
+            if (line.lastIndexOf(String.format("%s=", property)) != -1) {
                 try {
                     String methodName = propertyToMethodMap.get(property);
                     Class paramClass = methodParametersMap.get(methodName);

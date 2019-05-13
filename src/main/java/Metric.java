@@ -1,7 +1,8 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-public class Metric {
+public class Metric implements Serializable {
 
     private static final int RGB_MATRIX_SIZE = 3;
 
@@ -29,16 +30,17 @@ public class Metric {
         }
     }
 
-    public static int getDist(Metric metric1, Metric metric2) {
-        int sum = 0;
+    public static double getDist(Metric metric1, Metric metric2) {
+        double sum = 0;
         for (int i = 0; i < RGB_MATRIX_SIZE; i++) {
             for (int j = 0; j < RGB_MATRIX_SIZE; j++) {
                 sum+= Math.pow(metric1.getRgbMatrix()[i][j].getRed() - metric2.getRgbMatrix()[i][j].getRed(), 2) +
                         Math.pow(metric1.getRgbMatrix()[i][j].getGreen() - metric2.getRgbMatrix()[i][j].getGreen(), 2) +
-                        Math.pow(metric1.getRgbMatrix()[i][j].getBlue() - metric2.getRgbMatrix()[i][j].getBlue(), 2);
+                        Math.pow(metric1.getRgbMatrix()[i][j].getBlue() - metric2.getRgbMatrix()[i][j].getBlue(), 2) +
+                        Math.pow(metric1.getRgbMatrix()[i][j].getLightness() - metric2.getRgbMatrix()[i][j].getLightness(), 2);
             }
         }
-        return (int) Math.sqrt(sum);
+        return Math.sqrt(sum);
     }
 
     public RGBVector[][] getRgbMatrix() {

@@ -2,9 +2,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
-public class Store {
+public class Store implements Serializable {
 
     private Map<Metric, XMPParams> store;
 
@@ -16,10 +17,21 @@ public class Store {
         store.put(new Metric(getImage(imageFile)), XMPParser.parse(xmpFile));
     }
 
+    public boolean isEmpty() {
+        return store.isEmpty();
+    }
+
     public XMPParams get(File imageFile) {
         List<NearMetric> nearMetrics = getNearMetrics(getImage(imageFile));
+        if (nearMetrics.size() == 1) {
+            return store.get(nearMetrics.get(0).getMetric());
+        }
         double distSum = nearMetrics.stream().mapToDouble(NearMetric::getDistance).sum();
-        return store.get(getNearMetrics(getImage(imageFile)));
+        double k1 = nearMetrics.get(1).getDistance() / distSum;
+        double k2 = nearMetrics.get(0).getDistance() / distSum;
+        XMPParams xmpParams1 = store.get(nearMetrics.get(0).getMetric());
+        XMPParams xmpParams2 = store.get(nearMetrics.get(1).getMetric());
+        return new XMPParams(xmpParams1, k1, xmpParams2, k2);
     }
 
     private List<NearMetric> getNearMetrics(BufferedImage bufferedImage) {
@@ -30,7 +42,10 @@ public class Store {
             nearMetrics.add(new NearMetric(metric, dist));
         }
         nearMetrics.sort(Comparator.comparing(NearMetric::getDistance));
-        return nearMetrics.subList(0, 1);
+        if (nearMetrics.get(0).getDistance() < 0.0001) {
+            return Collections.singletonList(nearMetrics.get(0));
+        }
+        return nearMetrics.subList(0, 2);
     }
 
     private BufferedImage getImage(File file) {

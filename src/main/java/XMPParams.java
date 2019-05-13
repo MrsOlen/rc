@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.List;
 
-public class XMPParams {
+public class XMPParams implements Serializable {
 
     private int temperature;
     private int tint;
@@ -14,6 +15,23 @@ public class XMPParams {
     private int dehaze;
     private int vibrance;
     private int saturation;
+
+    public XMPParams() {}
+
+    public XMPParams(XMPParams xmpParams1, double k1, XMPParams xmpParams2, double k2) {
+        temperature = (int)(k1 * xmpParams1.temperature + k2 * xmpParams2.temperature);
+        tint = (int)(k1 * xmpParams1.tint + k2 * xmpParams2.tint);
+        exposure = k1 * xmpParams1.exposure + k2 * xmpParams2.exposure;
+        contrast = (int)(k1 * xmpParams1.contrast + k2 * xmpParams2.contrast);
+        highlights = (int)(k1 * xmpParams1.highlights + k2 * xmpParams2.highlights);
+        shadows = (int)(k1 * xmpParams1.shadows + k2 * xmpParams2.shadows);
+        whites = (int)(k1 * xmpParams1.whites + k2 * xmpParams2.whites);
+        blacks = (int)(k1 * xmpParams1.blacks + k2 * xmpParams2.blacks);
+        clarity = (int)(k1 * xmpParams1.clarity + k2 * xmpParams2.clarity);
+        dehaze = (int)(k1 * xmpParams1.dehaze + k2 * xmpParams2.dehaze);
+        vibrance = (int)(k1 * xmpParams1.vibrance + k2 * xmpParams2.vibrance);
+        saturation = (int)(k1 * xmpParams1.saturation + k2 * xmpParams2.saturation);
+    }
 
     public int getTemperature() {
         return temperature;
