@@ -30,14 +30,7 @@ public class App {
     private static Store getStore(String sourceDirectoryName) {
         Store store;
         String userDirectory = System.getProperty("user.home");
-        File directory = new File(userDirectory + "\\RawConverter");
-        if (!directory.exists()) {
-            store = new Store();
-        }
         File file = new File(userDirectory + "\\RawConverter\\store.txt");
-        if (!file.exists()) {
-            store = new Store();
-        }
         try {
             FileInputStream fis = new FileInputStream(file);
             ObjectInputStream ois = new ObjectInputStream(fis);
