@@ -28,9 +28,9 @@ public class App {
         String userDirectory = System.getProperty("user.home");
         File directory = new File(userDirectory + "\\RawConverter");
         if (!directory.exists()) {
-            return new NeuralNetwork(36, 12, 12);
+            return new NeuralNetwork(400, 12, 12);
         }
-        File file = new File(userDirectory + "\\RawConverter\\weights.txt");
+        File file = new File(userDirectory + "\\RawConverter\\neural-network.txt");
         if (!file.exists()) {
             return new NeuralNetwork(36, 12, 12);
         }
