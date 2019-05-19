@@ -19,7 +19,7 @@ public class App {
             learnNetwork(neuralNetwork, sourceDirectory);
         }
 
-        saveNetwork(neuralNetwork);
+        //saveNetwork(neuralNetwork);
 
         processImages(neuralNetwork, imageDirectory);
     }
@@ -28,11 +28,11 @@ public class App {
         String userDirectory = System.getProperty("user.home");
         File directory = new File(userDirectory + "\\RawConverter");
         if (!directory.exists()) {
-            return new NeuralNetwork(36, 12, 12);
+            return new NeuralNetwork(39, 12, 12);
         }
         File file = new File(userDirectory + "\\RawConverter\\neural-network.txt");
         if (!file.exists()) {
-            return new NeuralNetwork(36, 12, 12);
+            return new NeuralNetwork(39, 12, 12);
         }
         try {
             FileInputStream fis = new FileInputStream(file);
@@ -40,7 +40,7 @@ public class App {
             return (NeuralNetwork) ois.readObject();
         } catch (Exception e) {
             System.out.println("Произошла ошибка при загрузке нейросети");
-            return new NeuralNetwork(36, 12, 12);
+            return new NeuralNetwork(39, 12, 12);
         }
     }
 

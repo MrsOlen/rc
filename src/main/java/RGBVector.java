@@ -5,11 +5,11 @@ public class RGBVector {
     private double blue;
     private double lightness;
 
-    public RGBVector(int red, int green, int blue) {
-        this.red = Math.pow(red / 255d, 2.2);
-        this.green = Math.pow(green / 255d, 2.2);
-        this.blue = Math.pow(blue / 255d, 2.2);
-        lightness = 0.2126 * this.red + 0.7152 * this.green + 0.0722 * this.blue;
+    public RGBVector(double red, double green, double blue) {
+        this.red = red;
+        this.green = green;
+        this.blue = blue;
+        lightness = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
     }
 
     public double getRed() {
