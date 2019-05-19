@@ -23,7 +23,7 @@ public class App {
             return;
         }
         processImages(imageDirectory, store);
-        saveStore(store);
+        //saveStore(store);
 
     }
 
