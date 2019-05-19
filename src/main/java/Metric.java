@@ -8,7 +8,7 @@ import java.util.Vector;
 
 public class Metric {
 
-    private static final int RGB_MATRIX_SIZE = 10;
+    private static final int RGB_MATRIX_SIZE = 3;
 
     private RGBVector[][] rgbMatrix;
 

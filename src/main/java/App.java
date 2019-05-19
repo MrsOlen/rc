@@ -28,7 +28,7 @@ public class App {
         String userDirectory = System.getProperty("user.home");
         File directory = new File(userDirectory + "\\RawConverter");
         if (!directory.exists()) {
-            return new NeuralNetwork(400, 12, 12);
+            return new NeuralNetwork(36, 12, 12);
         }
         File file = new File(userDirectory + "\\RawConverter\\neural-network.txt");
         if (!file.exists()) {
@@ -72,7 +72,7 @@ public class App {
         })) {
             imageFileNames.add(file.getAbsolutePath());
         }
-        NetworkLearner networkLearner = new NetworkLearner(neuralNetwork, 0.4, 0.3, 100000);
+        NetworkLearner networkLearner = new NetworkLearner(neuralNetwork, 0.7, 0.3, 200000);
 
         List<TrainingData> trainingSet = new ArrayList<>();
         for (String imageFileName : imageFileNames) {
